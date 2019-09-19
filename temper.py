@@ -194,6 +194,12 @@ class USBRead(object):
       self._parse_bytes('external temperature', 10, 100.0, bytes, info)
       self._parse_bytes('external humidity', 12, 100.0, bytes, info)
       return info
+    
+    if info['firmware'][:12] in [ 'TEMPerHumM12V1.0'[:12] ]:
+      info['firmware'] = info['firmware'][:12]
+      self._parse_bytes('internal temperature', 2, 100.0, bytes, info)
+      self._parse_bytes('internal humidity', 4, 100.0, bytes, info)
+      return info
 
     info['error'] = 'Unknown firmware %s: %s' % (info['firmware'],
                                                  binascii.hexlify(bytes))
@@ -259,6 +265,8 @@ class Temper(object):
   def __init__(self, verbose=False):
     usblist = USBList()
     self.usb_devices = usblist.get_usb_devices()
+
+
     self.forced_vendor_id = None
     self.forced_product_id = None
     self.verbose = verbose
@@ -278,6 +286,8 @@ class Temper(object):
     if vendorid == 0x413d and productid == 0x2107:
       return True
     if vendorid == 0x1a86 and productid == 0x5523:
+      return True
+    if vendorid == 0x0c45 and productid == 0x7402:
       return True
 
     # The id is not known to this program.
